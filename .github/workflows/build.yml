@@ -38,8 +38,8 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: metadata
         run: |
-          # Extract version from gradle.properties
-          VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
+          # Matches only the line starting with 'version='
+          VERSION=$(grep "^version=" gradle.properties | cut -d'=' -f2)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           
           # Generate changelog from commit history (last 10 commits)
