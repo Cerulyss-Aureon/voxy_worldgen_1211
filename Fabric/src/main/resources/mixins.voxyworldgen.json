@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.agnor.passivepregen.mixin",
+  "package": "dev.iseeethan.voxyworldgen.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityStorageMixin",

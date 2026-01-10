@@ -1,6 +1,6 @@
-package dev.agnor.passivepregen.levelpos;
+package dev.iseeethan.voxyworldgen.levelpos;
 
-import dev.agnor.passivepregen.platform.Services;
+import dev.iseeethan.voxyworldgen.platform.Services;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.nbt.*;
@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import static dev.agnor.passivepregen.levelpos.ILevelPos.*;
+import static dev.iseeethan.voxyworldgen.levelpos.ILevelPos.*;
 
 public class StaticLevelPos implements ILevelPos {
 

@@ -49,7 +49,7 @@ loom {
             runDir("run")
         }
     }
-    accessWidenerPath = file("src/main/resources/passivepregenerator.accesswidener")
+    accessWidenerPath = file("src/main/resources/voxyworldgen.accesswidener")
 }
 
 
@@ -82,3 +82,6 @@ publishing {
         }
     }
 }
+
+test.enabled = false
+

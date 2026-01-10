@@ -1,6 +1,6 @@
-package dev.agnor.passivepregen.levelpos;
+package dev.iseeethan.voxyworldgen.levelpos;
 
-import dev.agnor.passivepregen.Constants;
+import dev.iseeethan.voxyworldgen.Constants;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;

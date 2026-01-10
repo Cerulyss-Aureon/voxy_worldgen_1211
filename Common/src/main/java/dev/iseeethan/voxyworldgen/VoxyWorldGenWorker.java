@@ -1,8 +1,8 @@
-package dev.agnor.passivepregen;
+package dev.iseeethan.voxyworldgen;
 
-import dev.agnor.passivepregen.levelpos.ILevelPos;
-import dev.agnor.passivepregen.levelpos.StaticLevelPos;
-import dev.agnor.passivepregen.platform.Services;
+import dev.iseeethan.voxyworldgen.levelpos.ILevelPos;
+import dev.iseeethan.voxyworldgen.levelpos.StaticLevelPos;
+import dev.iseeethan.voxyworldgen.platform.Services;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class PassivePregenWorker {
+public class VoxyWorldGenWorker {
 
     private Map<ServerLevel, List<ChunkPos>> generated = new HashMap<>();
     public AtomicInteger doneGenerating = new AtomicInteger();
@@ -26,8 +26,8 @@ public class PassivePregenWorker {
     }
 
     public void doWork() {
-        var levelPositions = new ArrayList<>(CommonClass.getPlayerPos());
-        levelPositions.add(CommonClass.getSpawnPoint());
+        var levelPositions = new ArrayList<>(VoxyWorldGenCommon.getPlayerPos());
+        levelPositions.add(VoxyWorldGenCommon.getSpawnPoint());
         Collections.shuffle(levelPositions);
         for (ILevelPos levelPos : levelPositions) {
             checkPos(levelPos);

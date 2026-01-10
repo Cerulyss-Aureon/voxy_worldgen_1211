@@ -1,4 +1,4 @@
-package dev.agnor.passivepregen.config;
+package dev.iseeethan.voxyworldgen.config;
 
 
 import com.mojang.datafixers.util.Pair;
@@ -6,7 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PassiveConfigProvider implements SimpleConfig.DefaultConfig {
+public class VoxyWorldGenConfigProvider implements SimpleConfig.DefaultConfig {
 
     private String configContents = "";
 

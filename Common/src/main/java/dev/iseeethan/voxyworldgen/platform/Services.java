@@ -1,7 +1,7 @@
-package dev.agnor.passivepregen.platform;
+package dev.iseeethan.voxyworldgen.platform;
 
-import dev.agnor.passivepregen.Constants;
-import dev.agnor.passivepregen.platform.services.IPlatformHelper;
+import dev.iseeethan.voxyworldgen.Constants;
+import dev.iseeethan.voxyworldgen.platform.services.IPlatformHelper;
 
 import java.util.ServiceLoader;
 

@@ -1,6 +1,6 @@
-package dev.agnor.passivepregen.mixin;
+package dev.iseeethan.voxyworldgen.mixin;
 
-import dev.agnor.passivepregen.Constants;
+import dev.iseeethan.voxyworldgen.Constants;
 import net.minecraft.world.level.chunk.storage.EntityStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

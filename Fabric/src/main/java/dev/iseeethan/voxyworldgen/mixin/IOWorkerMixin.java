@@ -1,7 +1,7 @@
-package dev.agnor.passivepregen.mixin;
+package dev.iseeethan.voxyworldgen.mixin;
 
 import com.mojang.logging.LogUtils;
-import dev.agnor.passivepregen.Constants;
+import dev.iseeethan.voxyworldgen.Constants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.storage.IOWorker;

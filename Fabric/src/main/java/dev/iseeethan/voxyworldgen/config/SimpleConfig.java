@@ -1,4 +1,4 @@
-package dev.agnor.passivepregen.config;
+package dev.iseeethan.voxyworldgen.config;
 /*
  * Copyright (c) 2021 magistermaks
  *

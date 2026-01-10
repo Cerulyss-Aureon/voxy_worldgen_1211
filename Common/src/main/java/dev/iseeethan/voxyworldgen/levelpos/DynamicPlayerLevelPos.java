@@ -1,11 +1,11 @@
-package dev.agnor.passivepregen.levelpos;
+package dev.iseeethan.voxyworldgen.levelpos;
 
-import dev.agnor.passivepregen.platform.Services;
+import dev.iseeethan.voxyworldgen.platform.Services;
 import lombok.Getter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import static dev.agnor.passivepregen.levelpos.ILevelPos.*;
+import static dev.iseeethan.voxyworldgen.levelpos.ILevelPos.*;
 
 @Getter
 public class DynamicPlayerLevelPos implements ILevelPos {

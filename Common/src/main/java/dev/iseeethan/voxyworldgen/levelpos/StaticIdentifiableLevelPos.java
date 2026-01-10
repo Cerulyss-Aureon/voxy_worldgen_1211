@@ -1,8 +1,8 @@
-package dev.agnor.passivepregen.levelpos;
+package dev.iseeethan.voxyworldgen.levelpos;
 
 import com.mojang.serialization.Dynamic;
-import dev.agnor.passivepregen.Constants;
-import dev.agnor.passivepregen.platform.Services;
+import dev.iseeethan.voxyworldgen.Constants;
+import dev.iseeethan.voxyworldgen.platform.Services;
 import lombok.Getter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
-import static dev.agnor.passivepregen.levelpos.ILevelPos.*;
+import static dev.iseeethan.voxyworldgen.levelpos.ILevelPos.*;
 
 import java.util.UUID;
 

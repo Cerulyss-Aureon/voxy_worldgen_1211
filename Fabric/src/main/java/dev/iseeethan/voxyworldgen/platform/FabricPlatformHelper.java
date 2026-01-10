@@ -1,8 +1,8 @@
-package dev.agnor.passivepregen.platform;
+package dev.iseeethan.voxyworldgen.platform;
 
-import dev.agnor.passivepregen.CommonClass;
-import dev.agnor.passivepregen.config.PassiveConfig;
-import dev.agnor.passivepregen.platform.services.IPlatformHelper;
+import dev.iseeethan.voxyworldgen.VoxyWorldGenCommon;
+import dev.iseeethan.voxyworldgen.config.VoxyWorldGenConfig;
+import dev.iseeethan.voxyworldgen.platform.services.IPlatformHelper;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -39,24 +39,24 @@ public class FabricPlatformHelper
 
     @Override
     public int getPlayerLoadDistance() {
-        return PassiveConfig.player_distance;
+        return VoxyWorldGenConfig.player_distance;
     }
 
     @Override
     public int getSpawnLoadDistance() {
-        return PassiveConfig.spawn_distance;
+        return VoxyWorldGenConfig.spawn_distance;
     }
 
     @Override
     public void onServerStarted(MinecraftServer server) {
         this.server = server;
-        CommonClass.onServerStart(server);
+        VoxyWorldGenCommon.onServerStart(server);
     }
 
     @Override
     public void onServerStopped(MinecraftServer server) {
         this.server = null;
-        CommonClass.onServerStop();
+        VoxyWorldGenCommon.onServerStop();
     }
 
 }

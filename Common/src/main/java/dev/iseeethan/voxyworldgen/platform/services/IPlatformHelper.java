@@ -1,4 +1,4 @@
-package dev.agnor.passivepregen.platform.services;
+package dev.iseeethan.voxyworldgen.platform.services;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;

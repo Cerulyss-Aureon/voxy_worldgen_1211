@@ -1,28 +1,29 @@
 {
   "schemaVersion": 1,
-  "id": "passivepregen",
+  "id": "voxyworldgen",
   "version": "${version}",
-  "name": "Passive Chunk Pregenerator",
-  "description": "This mod generates chunks passively around players, offline or online, and the worldspawn to generate chunks that will most likely be needed in the near future.",
+  "name": "Voxy World Gen",
+  "description": "This mod generates chunks passively around players, offline or online, and the worldspawn to generate chunks that will most likely be needed in the near future. Integrates with Voxy for LOD generation.",
   "authors": [
+    "iSeeEthan",
     "agnor99"
   ],
   "contact": {
-    "sources": "https://github.com/agnor99/passive-chunk-pregenerator"
+    "sources": "https://github.com/iSeeEthan/voxy_distant_gen"
   },
-  "accessWidener": "passivepregenerator.accesswidener",
+  "accessWidener": "voxyworldgen.accesswidener",
   "__comment": "for quilt",
-  "access_widener": "passivepregenerator.accesswidener",
-  "license": "CC0-1.0",
+  "access_widener": "voxyworldgen.accesswidener",
+  "license": "ARR",
   "icon": "pregen-logo.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.agnor.passivepregen.PassivePregenFabric"
+      "dev.iseeethan.voxyworldgen.VoxyWorldGenFabric"
     ]
   },
   "mixins": [
-    "mixins.passivepregen.json"
+    "mixins.voxyworldgen.json"
   ],
   "depends": {
     "fabricloader": ">=0.16",

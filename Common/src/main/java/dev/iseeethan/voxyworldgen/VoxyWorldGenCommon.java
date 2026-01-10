@@ -1,9 +1,9 @@
-package dev.agnor.passivepregen;
+package dev.iseeethan.voxyworldgen;
 
-import dev.agnor.passivepregen.levelpos.DynamicPlayerLevelPos;
-import dev.agnor.passivepregen.levelpos.ILevelPos;
-import dev.agnor.passivepregen.levelpos.StaticIdentifiableLevelPos;
-import dev.agnor.passivepregen.levelpos.StaticLevelPos;
+import dev.iseeethan.voxyworldgen.levelpos.DynamicPlayerLevelPos;
+import dev.iseeethan.voxyworldgen.levelpos.ILevelPos;
+import dev.iseeethan.voxyworldgen.levelpos.StaticIdentifiableLevelPos;
+import dev.iseeethan.voxyworldgen.levelpos.StaticLevelPos;
 import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommonClass {
+public class VoxyWorldGenCommon {
 
     @Getter
     private static List<ILevelPos> playerPos = new ArrayList<>();
@@ -74,11 +74,11 @@ public class CommonClass {
         spawnPoint = null;
     }
 
-    private static PassivePregenWorker worker = null;
+    private static VoxyWorldGenWorker worker = null;
 
     public static void onServerTickPost() {
         if (worker == null)
-            worker = new PassivePregenWorker();
+            worker = new VoxyWorldGenWorker();
         worker.doWork();
     }
 }
