@@ -186,7 +186,7 @@ public class VoxyWorldGenConfig {
                             newVal -> config.chunksPerTick = newVal
                         )
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(1, 32)
+                            .range(1, 128)
                             .step(1)
                             .formatValue(val -> Component.literal(val + " chunks")))
                         .build())
@@ -222,7 +222,7 @@ public class VoxyWorldGenConfig {
                             newVal -> config.playerDistance = newVal
                         )
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(1, 128)
+                            .range(1, 512)
                             .step(1)
                             .formatValue(val -> Component.literal(val + " chunks")))
                         .build())
@@ -237,7 +237,7 @@ public class VoxyWorldGenConfig {
                             newVal -> config.spawnDistance = newVal
                         )
                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(0, 512)
+                            .range(0, 2048)
                             .step(1)
                             .formatValue(val -> Component.literal(val + " chunks")))
                         .build())
