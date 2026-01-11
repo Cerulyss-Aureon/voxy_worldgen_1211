@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Voxy World Gen
 
 Automatically generates chunks around players as they explore, integrating with Voxy for LOD generation.
