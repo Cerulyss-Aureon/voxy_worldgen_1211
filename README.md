@@ -39,5 +39,4 @@ Automatically generates chunks around players as they explore, integrating with 
 
 - Original mod by [liliandev](https://modrinth.com/user/liliandev)
 - Fork maintained by [iSeeEthan](https://github.com/iSeeEthan)
-=======
 
