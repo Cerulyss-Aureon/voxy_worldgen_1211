@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Voxy World Gen
 
 Automatically generates chunks around players as they explore, integrating with Voxy for LOD generation.
@@ -39,3 +40,8 @@ Automatically generates chunks around players as they explore, integrating with 
 
 - Original mod by [liliandev](https://modrinth.com/user/liliandev)
 - Fork maintained by [iSeeEthan](https://github.com/iSeeEthan)
+=======
+Automatically generates chunks around player as they explore, requires Voxy.
+
+Credit to https://modrinth.com/user/liliandev for orginal mod!
+>>>>>>> 8b2246126178a8982425b7ae4ccfb99c62dc91a3
