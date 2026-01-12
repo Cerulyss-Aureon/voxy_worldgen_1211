@@ -63,10 +63,7 @@ public class VoxyWorldGenCommon {
     }
 
     public static void onServerStart(MinecraftServer server) {
-        // In very recent 1.21.x official mappings, LevelData has:
         BlockPos spawnPos = server.overworld().getLevelData().getRespawnData().pos();
-
-        // Then extract x/z as before
         spawnPoint = new StaticLevelPos(Level.OVERWORLD, spawnPos.getX(), spawnPos.getZ());
     }
 

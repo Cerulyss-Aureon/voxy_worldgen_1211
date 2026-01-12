@@ -6,14 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Generates chunk positions in various patterns for chunk loading.
- */
 public class ChunkPatternGenerator {
     
-    /**
-     * Generate chunk positions in a spiral pattern starting from center and moving outward.
-     */
     public static List<ChunkPos> generateSpiralOut(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         

@@ -3,10 +3,6 @@ package dev.iseeethan.voxyworldgen.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.iseeethan.voxyworldgen.Constants;
-import dev.isxander.yacl3.api.*;
-import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
-import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
-import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -17,10 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Configuration class for Voxy World Gen mod.
- * Uses YACL for a beautiful, real-time updating config GUI.
- */
 public class VoxyWorldGenConfig {
     private static final Logger LOGGER = LogManager.getLogger("VoxyWorldGenConfig");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -28,6 +20,9 @@ public class VoxyWorldGenConfig {
     
     // Singleton instance
     private static VoxyWorldGenConfig INSTANCE;
+    
+    // Cache for YACL availability check
+    private static Boolean yaclLoaded = null;
     
     /**
      * Generation pattern styles for chunk loading.
@@ -89,6 +84,55 @@ public class VoxyWorldGenConfig {
         return getInstance().generationStyle;
     }
     
+    // Instance accessors for YACL bindings
+    public boolean isEnabledValue() {
+        return enabled;
+    }
+    
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
+    public int getPlayerDistanceValue() {
+        return playerDistance;
+    }
+    
+    public void setPlayerDistance(int playerDistance) {
+        this.playerDistance = playerDistance;
+    }
+    
+    public int getSpawnDistanceValue() {
+        return spawnDistance;
+    }
+    
+    public void setSpawnDistance(int spawnDistance) {
+        this.spawnDistance = spawnDistance;
+    }
+    
+    public int getChunksPerTickValue() {
+        return chunksPerTick;
+    }
+    
+    public void setChunksPerTick(int chunksPerTick) {
+        this.chunksPerTick = chunksPerTick;
+    }
+    
+    public boolean shouldPrioritizeNearPlayerValue() {
+        return prioritizeNearPlayer;
+    }
+    
+    public void setPrioritizeNearPlayer(boolean prioritizeNearPlayer) {
+        this.prioritizeNearPlayer = prioritizeNearPlayer;
+    }
+    
+    public GenerationStyle getGenerationStyleValue() {
+        return generationStyle;
+    }
+    
+    public void setGenerationStyle(GenerationStyle generationStyle) {
+        this.generationStyle = generationStyle;
+    }
+    
     /**
      * Get the singleton config instance, loading from file if needed.
      */
@@ -105,6 +149,16 @@ public class VoxyWorldGenConfig {
     public static void create() {
         INSTANCE = load();
         LOGGER.info("VoxyWorldGen config loaded successfully!");
+    }
+    
+    /**
+     * Check if YACL is available at runtime.
+     */
+    public static boolean isYaclLoaded() {
+        if (yaclLoaded == null) {
+            yaclLoaded = FabricLoader.getInstance().isModLoaded("yet_another_config_lib_v3");
+        }
+        return yaclLoaded;
     }
     
     /**
@@ -142,123 +196,13 @@ public class VoxyWorldGenConfig {
         }
     }
     
-    /**
-     * Create the YACL config screen with all options on a single page.
-     * This creates a beautiful, modern config GUI with real-time updates.
-     */
     public static Screen createConfigScreen(Screen parent) {
-        VoxyWorldGenConfig config = getInstance();
-        VoxyWorldGenConfig defaults = new VoxyWorldGenConfig();
+        if (!isYaclLoaded()) {
+            LOGGER.warn("YACL is not installed - config screen is not available. Install YACL for a GUI config screen.");
+            return null;
+        }
         
-        return YetAnotherConfigLib.createBuilder()
-            .title(Component.translatable("config.voxyworldgen.title"))
-            .save(config::save)
-            
-            // Single category with all options
-            .category(ConfigCategory.createBuilder()
-                .name(Component.translatable("config.voxyworldgen.category.settings"))
-                .tooltip(Component.translatable("config.voxyworldgen.category.settings.tooltip"))
-                
-                // === GENERAL OPTIONS GROUP ===
-                .group(OptionGroup.createBuilder()
-                    .name(Component.translatable("config.voxyworldgen.group.general"))
-                    .description(OptionDescription.of(Component.translatable("config.voxyworldgen.group.general.description")))
-                    
-                    // Enabled toggle
-                    .option(Option.<Boolean>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.enabled"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.enabled.description")))
-                        .binding(
-                            defaults.enabled,
-                            () -> config.enabled,
-                            newVal -> config.enabled = newVal
-                        )
-                        .controller(TickBoxControllerBuilder::create)
-                        .build())
-                    
-                    // Chunks per tick
-                    .option(Option.<Integer>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.chunks_per_tick"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.chunks_per_tick.description")))
-                        .binding(
-                            defaults.chunksPerTick,
-                            () -> config.chunksPerTick,
-                            newVal -> config.chunksPerTick = newVal
-                        )
-                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(1, 128)
-                            .step(1)
-                            .formatValue(val -> Component.literal(val + " chunks")))
-                        .build())
-                    
-                    // Generation style enum
-                    .option(Option.<GenerationStyle>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.generation_style"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.generation_style.description")))
-                        .binding(
-                            defaults.generationStyle,
-                            () -> config.generationStyle,
-                            newVal -> config.generationStyle = newVal
-                        )
-                        .controller(opt -> EnumControllerBuilder.create(opt)
-                            .enumClass(GenerationStyle.class)
-                            .formatValue(style -> Component.literal(style.getDisplayName())))
-                        .build())
-                        
-                    .build())
-                
-                // === DISTANCE OPTIONS GROUP ===
-                .group(OptionGroup.createBuilder()
-                    .name(Component.translatable("config.voxyworldgen.group.distances"))
-                    .description(OptionDescription.of(Component.translatable("config.voxyworldgen.group.distances.description")))
-                    
-                    // Player distance slider
-                    .option(Option.<Integer>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.player_distance"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.player_distance.description")))
-                        .binding(
-                            defaults.playerDistance,
-                            () -> config.playerDistance,
-                            newVal -> config.playerDistance = newVal
-                        )
-                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(1, 512)
-                            .step(1)
-                            .formatValue(val -> Component.literal(val + " chunks")))
-                        .build())
-                    
-                    // Spawn distance slider
-                    .option(Option.<Integer>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.spawn_distance"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.spawn_distance.description")))
-                        .binding(
-                            defaults.spawnDistance,
-                            () -> config.spawnDistance,
-                            newVal -> config.spawnDistance = newVal
-                        )
-                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                            .range(0, 2048)
-                            .step(1)
-                            .formatValue(val -> Component.literal(val + " chunks")))
-                        .build())
-                    
-                    // Prioritize near player toggle
-                    .option(Option.<Boolean>createBuilder()
-                        .name(Component.translatable("config.voxyworldgen.prioritize_player"))
-                        .description(OptionDescription.of(Component.translatable("config.voxyworldgen.prioritize_player.description")))
-                        .binding(
-                            defaults.prioritizeNearPlayer,
-                            () -> config.prioritizeNearPlayer,
-                            newVal -> config.prioritizeNearPlayer = newVal
-                        )
-                        .controller(TickBoxControllerBuilder::create)
-                        .build())
-                        
-                    .build())
-                    
-                .build())
-            
-            .build()
-            .generateScreen(parent);
+        // Defer to the YACL-specific class to avoid loading YACL classes when it's not present
+        return YaclConfigScreen.create(parent);
     }
 }
