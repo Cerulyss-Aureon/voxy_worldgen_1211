@@ -4,26 +4,33 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChunkPatternGenerator {
     
     public static List<ChunkPos> generateSpiralOut(ChunkPos center, int radius) {
-        List<ChunkPos> positions = new ArrayList<>();
+        int expectedSize = (2 * radius + 1) * (2 * radius + 1);
+        List<ChunkPos> positions = new ArrayList<>(expectedSize);
+        Set<Long> seen = new HashSet<>(expectedSize);
         
         // Start at center
         positions.add(center);
+        seen.add(center.toLong());
         
         // Spiral outward
         int x = 0, z = 0;
         int dx = 0, dz = -1;
-        int maxSteps = (2 * radius + 1) * (2 * radius + 1);
+        int maxSteps = expectedSize;
         
         for (int i = 0; i < maxSteps; i++) {
             if (-radius <= x && x <= radius && -radius <= z && z <= radius) {
                 ChunkPos pos = new ChunkPos(center.x + x, center.z + z);
-                if (!positions.contains(pos)) {
+                long posLong = pos.toLong();
+                if (!seen.contains(posLong)) {
                     positions.add(pos);
+                    seen.add(posLong);
                 }
             }
             

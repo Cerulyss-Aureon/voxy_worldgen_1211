@@ -21,6 +21,9 @@
     "main": [
       "dev.iseeethan.voxyworldgen.VoxyWorldGenFabric"
     ],
+    "client": [
+      "dev.iseeethan.voxyworldgen.VoxyWorldGenClient"
+    ],
     "modmenu": [
       "dev.iseeethan.voxyworldgen.config.ModMenuIntegration"
     ]

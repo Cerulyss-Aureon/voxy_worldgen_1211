@@ -10,15 +10,17 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class VoxyWorldGenWorker {
 
     private Map<ServerLevel, Set<ChunkPos>> generated = new HashMap<>();
-    private Map<ILevelPos, List<ChunkPos>> positionQueues = new HashMap<>();
-    private Map<ILevelPos, Integer> queueIndices = new HashMap<>();
-    private Map<ILevelPos, ChunkPos> lastKnownPositions = new HashMap<>();
+    private Map<ILevelPos, List<ChunkPos>> positionQueues = new ConcurrentHashMap<>();
+    private Map<ILevelPos, Integer> queueIndices = new ConcurrentHashMap<>();
+    private Map<ILevelPos, ChunkPos> lastKnownPositions = new ConcurrentHashMap<>();
+    private Set<ILevelPos> pendingQueueGeneration = ConcurrentHashMap.newKeySet();
     private String lastGenerationStyle = null;
     public AtomicInteger doneGenerating = new AtomicInteger();
 
@@ -30,13 +32,18 @@ public class VoxyWorldGenWorker {
     }
 
     public void doWork() {
+        // Update debug stats
+        boolean enabled = Services.PLATFORM.isChunkGenerationEnabled();
+        DebugStats.getInstance().setGenerationEnabled(enabled);
+        
         // Check if generation is enabled
-        if (!Services.PLATFORM.isChunkGenerationEnabled()) {
+        if (!enabled) {
             return;
         }
         
         // Check if generation style changed
         String currentStyle = Services.PLATFORM.getGenerationStyle();
+        DebugStats.getInstance().setCurrentStyle(currentStyle);
         if (!currentStyle.equals(lastGenerationStyle)) {
             clearCache();
             lastGenerationStyle = currentStyle;
@@ -79,21 +86,33 @@ public class VoxyWorldGenWorker {
     }
 
     /**
-     * Get or generate the chunk position queue for a level position based on the current generation style.
+     * Start async queue generation for a level position.
+     * Returns null if queue is still being generated.
      */
     private List<ChunkPos> getPositionQueue(ILevelPos levelPos) {
         // Check if player has moved significantly - regenerate queue if so
-        if (hasPositionChanged(levelPos)) {
+        if (hasPositionChanged(levelPos) && !pendingQueueGeneration.contains(levelPos)) {
             positionQueues.remove(levelPos);
             queueIndices.remove(levelPos);
         }
         
-        // Check if we need to regenerate the queue
-        if (!positionQueues.containsKey(levelPos)) {
-            ChunkPos center = levelPos.getPos();
-            int radius = levelPos.loadDistance();
-            String style = Services.PLATFORM.getGenerationStyle();
-            
+        // Check if queue exists
+        if (positionQueues.containsKey(levelPos)) {
+            return positionQueues.get(levelPos);
+        }
+        
+        // Check if already generating
+        if (pendingQueueGeneration.contains(levelPos)) {
+            return null; // Still generating, skip this tick
+        }
+        
+        // Start async generation
+        pendingQueueGeneration.add(levelPos);
+        ChunkPos center = levelPos.getPos();
+        int radius = levelPos.loadDistance();
+        String style = Services.PLATFORM.getGenerationStyle();
+        
+        CompletableFuture.runAsync(() -> {
             List<ChunkPos> queue = switch (style) {
                 case "SPIRAL_OUT" -> ChunkPatternGenerator.generateSpiralOut(center, radius);
                 case "SPIRAL_IN" -> ChunkPatternGenerator.generateSpiralIn(center, radius);
@@ -106,9 +125,10 @@ public class VoxyWorldGenWorker {
             positionQueues.put(levelPos, queue);
             queueIndices.put(levelPos, 0);
             lastKnownPositions.put(levelPos, center);
-        }
+            pendingQueueGeneration.remove(levelPos);
+        });
         
-        return positionQueues.get(levelPos);
+        return null; // Queue not ready yet
     }
 
     private void checkPos(ILevelPos levelPos) {
@@ -120,8 +140,19 @@ public class VoxyWorldGenWorker {
             return;
         
         List<ChunkPos> queue = getPositionQueue(levelPos);
+        
+        // Queue still being generated asynchronously
+        if (queue == null) {
+            DebugStats.getInstance().updateCurrentAreaStats(0, 0);
+            return;
+        }
+        
         int currentIndex = queueIndices.getOrDefault(levelPos, 0);
         Set<ChunkPos> levelGenerated = generated.computeIfAbsent(level, l -> new HashSet<>());
+        
+        // Update debug stats for current area
+        int remaining = Math.max(0, queue.size() - currentIndex);
+        DebugStats.getInstance().updateCurrentAreaStats(remaining, queue.size());
         
         // Process chunks from the queue
         while (currentIndex < queue.size()) {
@@ -147,6 +178,7 @@ public class VoxyWorldGenWorker {
                             chunkGeneratedCallback.accept(generatedChunk);
                         }
                         doneGenerating.getAndIncrement();
+                        DebugStats.getInstance().incrementCompleted();
                         return null;
                     }, Services.PLATFORM.getChunkGenExecutor(level));
                     return; // One chunk at a time per level position
@@ -174,5 +206,6 @@ public class VoxyWorldGenWorker {
         positionQueues.clear();
         queueIndices.clear();
         lastKnownPositions.clear();
+        pendingQueueGeneration.clear();
     }
 }

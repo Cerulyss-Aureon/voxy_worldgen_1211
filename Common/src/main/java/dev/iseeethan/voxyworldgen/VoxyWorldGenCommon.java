@@ -69,6 +69,8 @@ public class VoxyWorldGenCommon {
 
     public static void onServerStop() {
         spawnPoint = null;
+        worker = null;
+        DebugStats.getInstance().reset();
     }
 
     private static VoxyWorldGenWorker worker = null;
