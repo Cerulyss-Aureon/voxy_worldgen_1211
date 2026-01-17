@@ -63,6 +63,11 @@ public class FabricPlatformHelper
     }
 
     @Override
+    public int getChunksPerTick() {
+        return VoxyWorldGenConfig.getChunksPerTick();
+    }
+
+    @Override
     public void onServerStarted(MinecraftServer server) {
         this.server = server;
         VoxyWorldGenCommon.onServerStart(server);

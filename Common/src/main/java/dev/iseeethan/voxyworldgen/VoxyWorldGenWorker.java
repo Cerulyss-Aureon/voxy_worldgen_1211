@@ -16,6 +16,10 @@ import java.util.function.Consumer;
 
 public class VoxyWorldGenWorker {
 
+    private static final int MAX_CHECKS_PER_TICK = 4096;
+    private static final long CHECK_BUDGET_NANOS = 5_000_000L; // 5ms
+    private static final int POSITION_CHANGE_THRESHOLD = 8;
+
     private Map<ServerLevel, Set<ChunkPos>> generated = new HashMap<>();
     private Map<ILevelPos, List<ChunkPos>> positionQueues = new ConcurrentHashMap<>();
     private Map<ILevelPos, Integer> queueIndices = new ConcurrentHashMap<>();
@@ -24,7 +28,6 @@ public class VoxyWorldGenWorker {
     private String lastGenerationStyle = null;
     public AtomicInteger doneGenerating = new AtomicInteger();
 
-    // Hook for external chunk processing (e.g., Voxy LOD ingestion)
     private static Consumer<ChunkAccess> chunkGeneratedCallback = null;
 
     public static void setChunkGeneratedCallback(Consumer<ChunkAccess> callback) {
@@ -32,16 +35,13 @@ public class VoxyWorldGenWorker {
     }
 
     public void doWork() {
-        // Update debug stats
         boolean enabled = Services.PLATFORM.isChunkGenerationEnabled();
         DebugStats.getInstance().setGenerationEnabled(enabled);
         
-        // Check if generation is enabled
         if (!enabled) {
             return;
         }
         
-        // Check if generation style changed
         String currentStyle = Services.PLATFORM.getGenerationStyle();
         DebugStats.getInstance().setCurrentStyle(currentStyle);
         if (!currentStyle.equals(lastGenerationStyle)) {
@@ -53,60 +53,54 @@ public class VoxyWorldGenWorker {
         levelPositions.add(VoxyWorldGenCommon.getSpawnPoint());
         
         if (Services.PLATFORM.shouldPrioritizeNearPlayer()) {
-            // Process player positions first, then spawn
-            for (ILevelPos levelPos : levelPositions) {
-                checkPos(levelPos);
-            }
+            levelPositions.sort((a, b) -> {
+                boolean aPlayer = !(a instanceof StaticLevelPos);
+                boolean bPlayer = !(b instanceof StaticLevelPos);
+                if (aPlayer && !bPlayer) return -1;
+                if (!aPlayer && bPlayer) return 1;
+                return 0;
+            });
         } else {
-            // Random order
             Collections.shuffle(levelPositions);
-            for (ILevelPos levelPos : levelPositions) {
-                checkPos(levelPos);
-            }
+        }
+
+        int maxGenerations = Services.PLATFORM.getChunksPerTick();
+        int totalScheduled = 0;
+
+        for (ILevelPos levelPos : levelPositions) {
+            if (totalScheduled >= maxGenerations) break;
+            totalScheduled += checkPos(levelPos, maxGenerations - totalScheduled);
         }
     }
 
-    /**
-     * Check if the player has moved significantly and needs a new queue.
-     * Returns true if the queue needs to be regenerated.
-     */
     private boolean hasPositionChanged(ILevelPos levelPos) {
         ChunkPos currentPos = levelPos.getPos();
         ChunkPos lastPos = lastKnownPositions.get(levelPos);
         
         if (lastPos == null) {
-            return true; // No previous position, needs queue
+            return true;
         }
         
-        // Check if moved more than 8 chunks (half a typical radius)
         int dx = Math.abs(currentPos.x - lastPos.x);
         int dz = Math.abs(currentPos.z - lastPos.z);
         
-        return dx > 8 || dz > 8;
+        return dx > POSITION_CHANGE_THRESHOLD || dz > POSITION_CHANGE_THRESHOLD;
     }
 
-    /**
-     * Start async queue generation for a level position.
-     * Returns null if queue is still being generated.
-     */
     private List<ChunkPos> getPositionQueue(ILevelPos levelPos) {
-        // Check if player has moved significantly - regenerate queue if so
         if (hasPositionChanged(levelPos) && !pendingQueueGeneration.contains(levelPos)) {
             positionQueues.remove(levelPos);
             queueIndices.remove(levelPos);
         }
         
-        // Check if queue exists
         if (positionQueues.containsKey(levelPos)) {
             return positionQueues.get(levelPos);
         }
         
-        // Check if already generating
         if (pendingQueueGeneration.contains(levelPos)) {
-            return null; // Still generating, skip this tick
+            return null;
         }
         
-        // Start async generation
         pendingQueueGeneration.add(levelPos);
         ChunkPos center = levelPos.getPos();
         int radius = levelPos.loadDistance();
@@ -128,52 +122,57 @@ public class VoxyWorldGenWorker {
             pendingQueueGeneration.remove(levelPos);
         });
         
-        return null; // Queue not ready yet
+        return null;
     }
 
-    private void checkPos(ILevelPos levelPos) {
+    private int checkPos(ILevelPos levelPos, int generationBudget) {
         if (levelPos == null || levelPos.isCompleted())
-            return;
+            return 0;
             
         ServerLevel level = levelPos.getServerLevel();
         if (level == null || Services.PLATFORM.isChunkExecutorWorking(level))
-            return;
+            return 0;
         
         List<ChunkPos> queue = getPositionQueue(levelPos);
         
-        // Queue still being generated asynchronously
         if (queue == null) {
             DebugStats.getInstance().updateCurrentAreaStats(0, 0);
-            return;
+            return 0;
         }
         
         int currentIndex = queueIndices.getOrDefault(levelPos, 0);
         Set<ChunkPos> levelGenerated = generated.computeIfAbsent(level, l -> new HashSet<>());
         
-        // Update debug stats for current area
         int remaining = Math.max(0, queue.size() - currentIndex);
         DebugStats.getInstance().updateCurrentAreaStats(remaining, queue.size());
         
-        // Process chunks from the queue
-        while (currentIndex < queue.size()) {
+        int checkedThisTick = 0;
+        int scheduledInThisCall = 0;
+        long startTime = System.nanoTime();
+        
+        while (currentIndex < queue.size() && scheduledInThisCall < generationBudget && checkedThisTick < MAX_CHECKS_PER_TICK) {
+            if ((checkedThisTick & 15) == 0 && checkedThisTick > 0 && (System.nanoTime() - startTime) > CHECK_BUDGET_NANOS) {
+                break;
+            }
+            
             ChunkPos pos = queue.get(currentIndex);
             currentIndex++;
             queueIndices.put(levelPos, currentIndex);
             
-            // Skip if already generated
             if (levelGenerated.contains(pos)) {
                 continue;
             }
             
-            // Check if chunk needs generation
             if (!level.hasChunk(pos.x, pos.z)) {
+                checkedThisTick++;
                 ChunkAccess chunk = level.getChunk(pos.x, pos.z, ChunkStatus.EMPTY, true);
                 if (!chunk.getPersistedStatus().isOrAfter(ChunkStatus.FULL)) {
                     levelGenerated.add(pos);
+                    scheduledInThisCall++;
+                    
                     CompletableFuture.supplyAsync(() -> {
                         ChunkAccess generatedChunk = level.getChunkSource().getChunk(pos.x, pos.z,
                                 ChunkStatus.FULL, true);
-                        // Call the chunk generated callback if set
                         if (chunkGeneratedCallback != null) {
                             chunkGeneratedCallback.accept(generatedChunk);
                         }
@@ -181,27 +180,24 @@ public class VoxyWorldGenWorker {
                         DebugStats.getInstance().incrementCompleted();
                         return null;
                     }, Services.PLATFORM.getChunkGenExecutor(level));
-                    return; // One chunk at a time per level position
+                    
+                    continue;
                 }
             }
             levelGenerated.add(pos);
         }
         
-        // Queue exhausted - mark as completed (only for static positions like spawn)
         if (currentIndex >= queue.size()) {
             if (levelPos instanceof StaticLevelPos staticLevelPos) {
                 staticLevelPos.setCompleted(true);
             }
-            // For dynamic player positions, clear the queue so it can regenerate
-            // This allows continued generation as the player moves
             positionQueues.remove(levelPos);
             queueIndices.remove(levelPos);
         }
+
+        return scheduledInThisCall;
     }
 
-    /**
-     * Clear caches when config changes or world changes.
-     */
     public void clearCache() {
         positionQueues.clear();
         queueIndices.clear();

@@ -31,4 +31,6 @@ public interface IPlatformHelper {
      * Values: "SPIRAL_OUT", "SPIRAL_IN", "CONCENTRIC", "ORIGINAL", "RANDOM"
      */
     String getGenerationStyle();
+
+    int getChunksPerTick();
 }

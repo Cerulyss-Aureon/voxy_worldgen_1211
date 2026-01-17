@@ -15,11 +15,9 @@ public class ChunkPatternGenerator {
         List<ChunkPos> positions = new ArrayList<>(expectedSize);
         Set<Long> seen = new HashSet<>(expectedSize);
         
-        // Start at center
         positions.add(center);
         seen.add(center.toLong());
         
-        // Spiral outward
         int x = 0, z = 0;
         int dx = 0, dz = -1;
         int maxSteps = expectedSize;
@@ -34,7 +32,6 @@ public class ChunkPatternGenerator {
                 }
             }
             
-            // Change direction when needed
             if (x == z || (x < 0 && x == -z) || (x > 0 && x == 1 - z)) {
                 int temp = dx;
                 dx = -dz;
@@ -48,39 +45,27 @@ public class ChunkPatternGenerator {
         return positions;
     }
     
-    /**
-     * Generate chunk positions in a spiral pattern starting from edge and moving inward.
-     */
     public static List<ChunkPos> generateSpiralIn(ChunkPos center, int radius) {
         List<ChunkPos> positions = generateSpiralOut(center, radius);
         Collections.reverse(positions);
         return positions;
     }
     
-    /**
-     * Generate chunk positions in concentric square rings around the center.
-     */
     public static List<ChunkPos> generateConcentric(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         
-        // Add center
         positions.add(center);
         
-        // Add concentric rings
         for (int ring = 1; ring <= radius; ring++) {
-            // Top edge (left to right)
             for (int x = -ring; x <= ring; x++) {
                 positions.add(new ChunkPos(center.x + x, center.z - ring));
             }
-            // Right edge (top to bottom, excluding corner)
             for (int z = -ring + 1; z <= ring; z++) {
                 positions.add(new ChunkPos(center.x + ring, center.z + z));
             }
-            // Bottom edge (right to left, excluding corner)
             for (int x = ring - 1; x >= -ring; x--) {
                 positions.add(new ChunkPos(center.x + x, center.z + ring));
             }
-            // Left edge (bottom to top, excluding corners)
             for (int z = ring - 1; z >= -ring + 1; z--) {
                 positions.add(new ChunkPos(center.x - ring, center.z + z));
             }
@@ -89,10 +74,6 @@ public class ChunkPatternGenerator {
         return positions;
     }
     
-    /**
-     * Generate chunk positions in the original line-based pattern (dx/dy nested loops).
-     * This is the fastest pattern as it uses simple iteration.
-     */
     public static List<ChunkPos> generateOriginal(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         
@@ -113,22 +94,16 @@ public class ChunkPatternGenerator {
         return positions;
     }
     
-    /**
-     * Generate chunk positions in random order within the radius.
-     */
     public static List<ChunkPos> generateRandom(ChunkPos center, int radius) {
         List<ChunkPos> positions = new ArrayList<>();
         
-        // Generate all positions within radius
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
                 positions.add(new ChunkPos(center.x + x, center.z + z));
             }
         }
         
-        // Shuffle for random order
         Collections.shuffle(positions);
-        
         return positions;
     }
 }

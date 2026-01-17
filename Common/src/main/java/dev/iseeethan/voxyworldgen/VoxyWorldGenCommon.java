@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class VoxyWorldGenCommon {
 
     @Getter
     private static ILevelPos spawnPoint = null;
+
+    private static VoxyWorldGenWorker worker = null;
 
     public static void onPlayerLogin(Player player) {
         if (!(player instanceof ServerPlayer serverPlayer))
@@ -51,7 +54,6 @@ public class VoxyWorldGenCommon {
         for (ILevelPos levelPos : playerPos) {
             if (levelPos instanceof DynamicPlayerLevelPos dynamicPlayerLevelPos
                     && dynamicPlayerLevelPos.getPlayer() == serverPlayer) {
-
                 unloadablePlayerPos = dynamicPlayerLevelPos;
                 break;
             }
@@ -72,8 +74,6 @@ public class VoxyWorldGenCommon {
         worker = null;
         DebugStats.getInstance().reset();
     }
-
-    private static VoxyWorldGenWorker worker = null;
 
     public static void onServerTickPost() {
         if (worker == null)
